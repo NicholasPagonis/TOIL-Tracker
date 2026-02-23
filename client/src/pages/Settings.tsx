@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Save, Copy, Check, Eye, EyeOff, Smartphone, ChevronDown, ChevronUp } from 'lucide-react'
+import { Save, Copy, Check, Eye, EyeOff, Smartphone, ChevronDown, ChevronUp, Database } from 'lucide-react'
 import { api } from '../api'
-import type { AppSettings } from '../types'
+import type { AppSettings, DbConfig } from '../types'
 
 const ROUNDING_OPTIONS = [
   { value: 'NONE', label: 'No rounding' },
@@ -27,6 +27,20 @@ export default function Settings() {
   const [subjectTemplate, setSubjectTemplate] = useState('')
   const [reportFooter, setReportFooter] = useState('')
 
+  // Database config state
+  const [dbConfig, setDbConfig] = useState<DbConfig | null>(null)
+  const [dbProvider, setDbProvider] = useState<'sqlite' | 'mysql'>('sqlite')
+  const [dbHost, setDbHost] = useState('')
+  const [dbPort, setDbPort] = useState('3306')
+  const [dbName, setDbName] = useState('')
+  const [dbUser, setDbUser] = useState('')
+  const [dbPassword, setDbPassword] = useState('')
+  const [showDbPassword, setShowDbPassword] = useState(false)
+  const [dbSaving, setDbSaving] = useState(false)
+  const [dbSaved, setDbSaved] = useState(false)
+  const [dbError, setDbError] = useState<string | null>(null)
+  const [dbRestartRequired, setDbRestartRequired] = useState(false)
+
   useEffect(() => {
     api.getSettings().then(s => {
       setSettings(s)
@@ -38,6 +52,17 @@ export default function Settings() {
       setReportFooter(s.reportFooter)
       setLoading(false)
     }).catch(() => setLoading(false))
+
+    api.getDbConfig().then(cfg => {
+      setDbConfig(cfg)
+      setDbProvider(cfg.provider === 'mysql' ? 'mysql' : 'sqlite')
+      if (cfg.provider === 'mysql') {
+        setDbHost(cfg.host ?? '')
+        setDbPort(String(cfg.port ?? 3306))
+        setDbName(cfg.database ?? '')
+        setDbUser(cfg.user ?? '')
+      }
+    }).catch(() => { /* non-critical */ })
   }, [])
 
   const handleSave = async (e: React.FormEvent) => {
@@ -72,6 +97,36 @@ export default function Settings() {
     navigator.clipboard.writeText('[Set via API_KEY env variable]')
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDbSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setDbSaving(true)
+    setDbError(null)
+    setDbRestartRequired(false)
+    try {
+      let result
+      if (dbProvider === 'sqlite') {
+        result = await api.updateDbConfig({ provider: 'sqlite' })
+      } else {
+        result = await api.updateDbConfig({
+          provider: 'mysql',
+          host: dbHost,
+          port: dbPort ? parseInt(dbPort, 10) : undefined,
+          database: dbName,
+          user: dbUser,
+          password: dbPassword || undefined,
+        })
+      }
+      setDbConfig(result.config)
+      setDbSaved(true)
+      setDbRestartRequired(true)
+      setTimeout(() => setDbSaved(false), 2000)
+    } catch (e) {
+      setDbError(e instanceof Error ? e.message : 'Failed to save database configuration')
+    } finally {
+      setDbSaving(false)
+    }
   }
 
   if (loading) {
@@ -272,6 +327,156 @@ export default function Settings() {
             </>
           )}
         </button>
+      </form>
+
+      {/* Database Configuration */}
+      <form onSubmit={handleDbSave} className="space-y-5 mt-5">
+        <div className="card p-4 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
+              <Database size={16} className="text-slate-400" />
+            </div>
+            <h2 className="text-sm font-semibold text-slate-300">Database Configuration</h2>
+          </div>
+
+          {dbConfig && (
+            <div className="bg-slate-800/50 rounded-xl px-3 py-2">
+              <p className="text-xs text-slate-400">
+                Current provider:{' '}
+                <span className="text-slate-200 font-medium">{dbConfig.provider.toUpperCase()}</span>
+                {dbConfig.provider === 'mysql' && dbConfig.host && (
+                  <>{' \u2014 '}<span className="text-slate-300">{dbConfig.host}:{dbConfig.port ?? 3306}/{dbConfig.database}</span></>
+                )}
+                {dbConfig.provider === 'sqlite' && dbConfig.file && (
+                  <>{' \u2014 '}<span className="text-slate-300">{dbConfig.file}</span></>
+                )}
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label className="label">Database Provider</label>
+            <select
+              value={dbProvider}
+              onChange={e => setDbProvider(e.target.value as 'sqlite' | 'mysql')}
+              className="input bg-slate-800"
+            >
+              <option value="sqlite">SQLite (local file)</option>
+              <option value="mysql">MySQL</option>
+            </select>
+          </div>
+
+          {dbProvider === 'mysql' && (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label className="label">Host</label>
+                  <input
+                    type="text"
+                    value={dbHost}
+                    onChange={e => setDbHost(e.target.value)}
+                    placeholder="localhost"
+                    className="input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label">Port</label>
+                  <input
+                    type="number"
+                    value={dbPort}
+                    onChange={e => setDbPort(e.target.value)}
+                    placeholder="3306"
+                    min="1"
+                    max="65535"
+                    className="input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="label">Database Name</label>
+                <input
+                  type="text"
+                  value={dbName}
+                  onChange={e => setDbName(e.target.value)}
+                  placeholder="toil_tracker"
+                  className="input"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="label">Username</label>
+                <input
+                  type="text"
+                  value={dbUser}
+                  onChange={e => setDbUser(e.target.value)}
+                  placeholder="root"
+                  className="input"
+                  required
+                  autoComplete="username"
+                />
+              </div>
+
+              <div>
+                <label className="label">Password</label>
+                <div className="relative">
+                  <input
+                    type={showDbPassword ? 'text' : 'password'}
+                    value={dbPassword}
+                    onChange={e => setDbPassword(e.target.value)}
+                    placeholder={dbConfig?.hasPassword ? '(unchanged)' : 'Enter password'}
+                    className="input pr-12"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowDbPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    {showDbPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {dbError && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+              <p className="text-red-400 text-sm">{dbError}</p>
+            </div>
+          )}
+
+          {dbRestartRequired && (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+              <p className="text-amber-400 text-sm font-medium">Server restart required</p>
+              <p className="text-amber-400/80 text-xs mt-0.5">
+                The new database configuration has been saved to the server's <code className="bg-amber-900/30 px-1 rounded">.env</code> file.
+                Restart the server to connect with the new settings.
+                {dbProvider === 'mysql' && ' You may also need to run database migrations.'}
+              </p>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={dbSaving}
+            className="btn-primary w-full text-sm py-3 flex items-center justify-center gap-2"
+          >
+            {dbSaved ? (
+              <>
+                <Check size={16} />
+                Saved!
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                {dbSaving ? 'Saving…' : 'Save Database Config'}
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   )

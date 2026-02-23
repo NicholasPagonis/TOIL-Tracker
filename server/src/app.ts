@@ -7,6 +7,7 @@ import sessionsRouter from "./routes/sessions";
 import summaryRouter from "./routes/summary";
 import reportRouter from "./routes/report";
 import settingsRouter from "./routes/settings";
+import dbRouter from "./routes/db";
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use("/api/sessions", sessionsRouter);
 app.use("/api/summary", summaryRouter);
 app.use("/api/report", reportRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/db", dbRouter);
 
 // 404 handler for unknown API routes
 app.use("/api/", (_req, res) => {
