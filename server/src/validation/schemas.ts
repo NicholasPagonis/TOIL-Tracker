@@ -75,8 +75,24 @@ export const UpdateSettingsSchema = z.object({
   reportFooter: z.string().max(2000).optional(),
 });
 
+export const UpdateDbConfigSchema = z.discriminatedUnion("provider", [
+  z.object({
+    provider: z.literal("sqlite"),
+    file: z.string().max(500).optional(),
+  }),
+  z.object({
+    provider: z.literal("mysql"),
+    host: z.string().min(1).max(253),
+    port: z.number().int().min(1).max(65535).optional(),
+    database: z.string().min(1).max(255),
+    user: z.string().min(1).max(255),
+    password: z.string().max(1024).optional(),
+  }),
+]);
+
 export type ClockInInput = z.infer<typeof ClockInSchema>;
 export type ClockOutInput = z.infer<typeof ClockOutSchema>;
 export type CreateSessionInput = z.infer<typeof CreateSessionSchema>;
 export type UpdateSessionInput = z.infer<typeof UpdateSessionSchema>;
 export type UpdateSettingsInput = z.infer<typeof UpdateSettingsSchema>;
+export type UpdateDbConfigInput = z.infer<typeof UpdateDbConfigSchema>;

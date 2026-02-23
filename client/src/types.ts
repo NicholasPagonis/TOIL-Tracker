@@ -50,6 +50,21 @@ export interface AppSettings {
   reportFooter: string
 }
 
+export interface DbConfig {
+  provider: 'sqlite' | 'mysql' | 'unknown'
+  file?: string
+  host?: string
+  port?: number
+  database?: string
+  user?: string
+  hasPassword?: boolean
+}
+
+export interface DbConfigUpdateResult {
+  message: string
+  config: DbConfig
+}
+
 export interface ClockInResponse {
   alreadyClockedIn: boolean
   session: Session

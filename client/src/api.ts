@@ -1,4 +1,4 @@
-import type { Session, SummaryResponse, AppSettings, ClockInResponse } from './types'
+import type { Session, SummaryResponse, AppSettings, ClockInResponse, DbConfig, DbConfigUpdateResult } from './types'
 
 const BASE = '/api'
 
@@ -95,6 +95,18 @@ export const api = {
 
   updateSettings: (data: Partial<AppSettings>) =>
     request<AppSettings>('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  // Database config
+  getDbConfig: () => request<DbConfig>('/db/config'),
+
+  updateDbConfig: (data:
+    | { provider: 'sqlite'; file?: string }
+    | { provider: 'mysql'; host: string; port?: number; database: string; user: string; password?: string }
+  ) =>
+    request<DbConfigUpdateResult>('/db/config', {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
