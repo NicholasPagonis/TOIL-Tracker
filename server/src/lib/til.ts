@@ -42,16 +42,26 @@ export interface SettingsInput {
   overtimeStartsAfterMinutes: number | null;
 }
 
+export interface DailyTotalSession {
+  id: string;
+  startedAt: Date;
+  endedAt: Date | null;
+  minutes: number;
+  source: string;
+  locationLabel: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  breaks: BreakInput[];
+}
+
 export interface DailyTotal {
   date: string;
   totalMinutes: number;
   tilMinutes: number;
-  sessions: {
-    id: string;
-    startedAt: Date;
-    endedAt: Date | null;
-    minutes: number;
-  }[];
+  sessions: DailyTotalSession[];
 }
 
 /**
@@ -166,7 +176,7 @@ export function calculateDailyTotals(
     string,
     {
       totalMinutes: number;
-      sessions: { id: string; startedAt: Date; endedAt: Date | null; minutes: number }[];
+      sessions: DailyTotalSession[];
     }
   >();
 
@@ -207,6 +217,14 @@ export function calculateDailyTotals(
           startedAt: session.startedAt,
           endedAt: session.endedAt,
           minutes: sessionMinutes,
+          source: session.source,
+          locationLabel: session.locationLabel,
+          latitude: session.latitude,
+          longitude: session.longitude,
+          notes: session.notes,
+          createdAt: session.createdAt,
+          updatedAt: session.updatedAt,
+          breaks: session.breaks,
         });
       }
     }

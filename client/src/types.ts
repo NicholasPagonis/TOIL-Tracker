@@ -19,11 +19,15 @@ export interface Session {
   updatedAt: string
 }
 
+export interface DailyTotalSession extends Session {
+  minutes: number
+}
+
 export interface DailyTotal {
   date: string
   totalMinutes: number
   tilMinutes: number
-  sessions: Session[]
+  sessions: DailyTotalSession[]
 }
 
 export interface SummaryResponse {

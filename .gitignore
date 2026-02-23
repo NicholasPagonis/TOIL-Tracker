@@ -7,3 +7,4 @@ server/prisma/*.db
 server/prisma/*.db-journal
 server/dist/
 client/dist/
+.env.local

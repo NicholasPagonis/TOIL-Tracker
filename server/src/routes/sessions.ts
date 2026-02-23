@@ -121,6 +121,24 @@ router.post(
   }
 );
 
+// GET /api/sessions/active – returns the currently open session or null
+router.get("/active", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000);
+    const session = await prisma.session.findFirst({
+      where: {
+        endedAt: null,
+        startedAt: { gte: eightHoursAgo },
+      },
+      include: { breaks: true },
+      orderBy: { startedAt: "desc" },
+    });
+    res.json(session ?? null);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/sessions?from=YYYY-MM-DD&to=YYYY-MM-DD
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -149,6 +167,23 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
     });
 
     res.json({ sessions });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/sessions/:id
+router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = String(req.params["id"]);
+    const session = await prisma.session.findUnique({
+      where: { id },
+      include: { breaks: true },
+    });
+    if (!session) {
+      return next(createError("Session not found", 404));
+    }
+    res.json({ session });
   } catch (err) {
     next(err);
   }

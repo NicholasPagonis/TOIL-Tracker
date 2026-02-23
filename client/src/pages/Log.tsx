@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Plus, Edit2, Trash2, ChevronDown, ChevronUp, MapPin } from 'lucide-react'
 import { format, addWeeks, subWeeks, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns'
 import { api } from '../api'
-import type { SummaryResponse, Session } from '../types'
+import type { SummaryResponse, DailyTotalSession } from '../types'
 import { formatMinutes, formatTime, toYMD } from '../utils'
 
-function SessionItem({ session, onDelete }: { session: Session; onDelete: () => void }) {
+function SessionItem({ session, onDelete }: { session: DailyTotalSession; onDelete: () => void }) {
   const [deleting, setDeleting] = useState(false)
 
   const handleDelete = async () => {
@@ -70,7 +70,7 @@ function SessionItem({ session, onDelete }: { session: Session; onDelete: () => 
 
 function DayCard({ date, day, onRefresh }: {
   date: Date
-  day?: { totalMinutes: number; tilMinutes: number; sessions: Session[] }
+  day?: { totalMinutes: number; tilMinutes: number; sessions: DailyTotalSession[] }
   onRefresh: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
