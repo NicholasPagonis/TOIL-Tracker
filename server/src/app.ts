@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import rateLimit from "express-rate-limit";
 import { authMiddleware } from "./middleware/auth";
 import { errorHandler } from "./middleware/error";
@@ -56,6 +57,17 @@ app.use("/api/db", dbRouter);
 app.use("/api/", (_req, res) => {
   res.status(404).json({ error: "Not Found", message: "Route not found" });
 });
+
+// Serve static files in production
+if (process.env.NODE_ENV === "production") {
+  const publicPath = path.join(__dirname, "../public");
+  app.use(express.static(publicPath));
+  
+  // SPA fallback: serve index.html for all non-API routes
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(publicPath, "index.html"));
+  });
+}
 
 // Global error handler (must be last)
 app.use(errorHandler);

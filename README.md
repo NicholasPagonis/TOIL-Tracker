@@ -10,11 +10,12 @@ A self-hosted time-off-in-lieu (TOIL) tracking application with a REST API backe
 2. [Architecture](#architecture)
 3. [Prerequisites](#prerequisites)
 4. [Local Setup](#local-setup)
-5. [Environment Variables](#environment-variables)
-6. [Production Build](#production-build)
-7. [API Key Setup](#api-key-setup)
-8. [iOS Shortcuts Setup](#ios-shortcuts-setup)
-9. [Deployment Notes](#deployment-notes)
+5. [Docker Deployment](#docker-deployment)
+6. [Environment Variables](#environment-variables)
+7. [Production Build](#production-build)
+8. [API Key Setup](#api-key-setup)
+9. [iOS Shortcuts Setup](#ios-shortcuts-setup)
+10. [Deployment Notes](#deployment-notes)
 
 ---
 
@@ -112,6 +113,56 @@ npm run dev
 | Web dashboard | <http://localhost:5173> |
 
 Both servers reload automatically on file changes.
+
+---
+
+## Docker Deployment
+
+For production deployment, use Docker for easy single-container deployment:
+
+### Quick Start with Docker Compose (Recommended)
+
+```bash
+docker-compose up -d --build
+```
+
+The application will be available at `http://localhost:3001`
+
+### Manual Docker Build
+
+```bash
+# Build the image
+docker build -t toil-tracker .
+
+# Run the container
+docker run -d \
+  --name toil-tracker \
+  -p 3001:3001 \
+  -v toil-data:/data \
+  -e DATABASE_URL=file:/data/toil.db \
+  -e API_KEY=your-secure-api-key-here \
+  toil-tracker
+```
+
+### Configuration
+
+Create a `.env.production` file (see `.env.production.example`) with your production settings:
+
+- `API_KEY` - Set a secure random key
+- `CORS_ORIGIN` - Set to your domain (e.g., `https://yourdomain.com`)
+- `DATABASE_URL` - Keep as `file:/data/toil.db` for Docker volume persistence
+
+### Data Backup
+
+```bash
+# Backup database
+docker run --rm -v toil-data:/data -v $(pwd):/backup alpine tar czf /backup/toil-backup.tar.gz /data
+
+# Restore database
+docker run --rm -v toil-data:/data -v $(pwd):/backup alpine tar xzf /backup/toil-backup.tar.gz -C /
+```
+
+For detailed deployment instructions, reverse proxy setup, and troubleshooting, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 

@@ -198,6 +198,59 @@ export default function Reports() {
         </div>
       </div>
 
+      {/* TOIL Chart */}
+      {!loading && activeDays.length > 0 && (
+        <div className="card p-4">
+          <h2 className="text-sm font-semibold text-slate-300 mb-4">TOIL Accumulation</h2>
+          <div className="relative pl-12 pb-6">
+            {/* Y-axis labels */}
+            <div className="absolute top-0 bottom-6 left-0 flex flex-col justify-between text-xs text-slate-500">
+              <span>{formatMinutes(Math.max(...activeDays.map(d => d.tilMinutes), 60))}</span>
+              <span>0</span>
+              <span>{formatMinutes(Math.min(...activeDays.map(d => d.tilMinutes), -60))}</span>
+            </div>
+            
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-48">
+              {/* Grid lines */}
+              <line x1="0" y1="50" x2="100" y2="50" stroke="rgb(51, 65, 85)" strokeWidth="0.3" />
+              <line x1="0" y1="0" x2="100" y2="0" stroke="rgb(51, 65, 85)" strokeWidth="0.2" opacity="0.5" />
+              <line x1="0" y1="100" x2="100" y2="100" stroke="rgb(51, 65, 85)" strokeWidth="0.2" opacity="0.5" />
+              
+              {/* Bars */}
+              {activeDays.map((day, i) => {
+                const spacing = 100 / activeDays.length
+                const x = i * spacing + spacing / 2
+                const barWidth = spacing * 0.5
+                const maxAbsTil = Math.max(...activeDays.map(d => Math.abs(d.tilMinutes)), 60)
+                const height = (Math.abs(day.tilMinutes) / maxAbsTil) * 50
+                const y = day.tilMinutes >= 0 ? 50 - height : 50
+                const color = day.tilMinutes >= 0 ? 'rgb(74, 222, 128)' : 'rgb(251, 191, 36)'
+                
+                return (
+                  <g key={day.date}>
+                    <rect
+                      x={x - barWidth / 2}
+                      y={y}
+                      width={barWidth}
+                      height={height}
+                      fill={color}
+                      opacity="0.8"
+                      className="transition-opacity hover:opacity-100"
+                    />
+                  </g>
+                )
+              })}
+            </svg>
+            
+            {/* X-axis labels */}
+            <div className="flex justify-between text-xs text-slate-500 mt-2">
+              <span>{format(new Date(activeDays[0].date + 'T00:00:00'), 'EEE d MMM')}</span>
+              <span>{format(new Date(activeDays[activeDays.length - 1].date + 'T00:00:00'), 'EEE d MMM')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Daily table */}
       <div className="card overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-800">
