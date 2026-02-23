@@ -58,8 +58,8 @@ router.put("/", async (req: Request, res: Response, next: NextFunction) => {
 
     const settings = await prisma.settings.upsert({
       where: { id: "singleton" },
-      update: updateData as Parameters<typeof prisma.settings.upsert>[0]["update"],
-      create: { id: "singleton", ...updateData } as Parameters<typeof prisma.settings.upsert>[0]["create"],
+      update: updateData as any,
+      create: { id: "singleton", ...updateData } as any,
     });
 
     res.json({

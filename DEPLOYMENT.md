@@ -134,6 +134,13 @@ docker-compose ps
 
 ## Troubleshooting
 
+### TypeScript compilation errors
+
+If you encounter TypeScript errors during build, ensure that:
+1. Prisma client is generated before TypeScript compilation
+2. All dependencies are installed correctly
+3. Try rebuilding without cache: `docker build --no-cache -t toil-tracker .`
+
 ### Database migrations not running
 
 ```bash

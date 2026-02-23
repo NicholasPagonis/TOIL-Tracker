@@ -15,8 +15,8 @@ WORKDIR /app/server
 COPY server/package*.json ./
 RUN npm ci
 COPY server/ ./
-RUN npm run build
 RUN npx prisma generate
+RUN npm run build
 
 # Production image
 FROM node:20-alpine

@@ -304,7 +304,7 @@ router.patch(
 
       const session = await prisma.session.update({
         where: { id },
-        data: updateData as Parameters<typeof prisma.session.update>[0]["data"],
+        data: updateData as any,
         include: { breaks: true },
       });
 
