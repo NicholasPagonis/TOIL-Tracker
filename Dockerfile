@@ -27,8 +27,8 @@ RUN npm run build
 # Production image
 FROM node:20-alpine
 
-# Install OpenSSL and libc6-compat for Prisma and glibc compatibility
-RUN apk add --no-cache openssl libc6-compat
+# Install OpenSSL, libc6-compat, and bash for Prisma and terminal access
+RUN apk add --no-cache openssl libc6-compat bash curl
 
 WORKDIR /app
 
