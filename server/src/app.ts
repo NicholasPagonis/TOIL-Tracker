@@ -40,6 +40,11 @@ app.use("/api/", limiter);
 // Auth middleware (checks X-API-KEY if API_KEY env var is set)
 app.use(authMiddleware);
 
+// Root endpoint
+app.get("/", (_req, res) => {
+  res.json({ message: "TOIL Tracker API", version: "1.0.0" });
+});
+
 // Health check (unauthenticated)
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
