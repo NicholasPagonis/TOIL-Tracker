@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id @default(uuid())
+  startedAt     DateTime
+  endedAt       DateTime?
+  source        String    @default("MANUAL")
+  locationLabel String?
+  latitude      Float?
+  longitude     Float?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  breaks        Break[]
+}
+
+model Break {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  startedAt DateTime
+  endedAt   DateTime
+}
+
+model Settings {
+  id                         String  @id @default("singleton")
+  standardDailyMinutes       Int     @default(456)
+  roundingRule               String  @default("NONE")
+  overtimeStartsAfterMinutes Int?
+  allowNegativeTil           Boolean @default(false)
+  workLocationGeofenceName   String?
+  reportRecipientEmails      String  @default("[]")
+  reportSubjectTemplate      String  @default("TOIL Report {from} to {to}")
+  reportFooter               String  @default("")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  eventType String
+  payload   String
+  createdAt DateTime @default(now())
+}
